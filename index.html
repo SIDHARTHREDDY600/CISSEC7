@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Balancer Simulator</title>
+    <!-- Google Fonts for Bold Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- HERO SECTION -->
+    <section class="section hero-section">
+        <div class="decor-coin pink-coin" style="top: 10%; left: 15%;"></div>
+        <div class="decor-coin green-coin" style="top: 20%; right: 10%;"></div>
+        <div class="decor-coin yellow-coin" style="bottom: 15%; left: 25%;"></div>
+
+        <div class="container text-center">
+            <h1 class="hero-title">
+                LOAD BALANCER <br>
+                <span class="highlight">SIMULATOR</span>
+            </h1>
+            <p class="hero-subtitle">Visualise how traffic is distributed across servers</p>
+            <button class="btn btn-primary" onclick="document.getElementById('control-section').scrollIntoView({behavior: 'smooth'})">GET STARTED</button>
+        </div>
+    </section>
+
+    <!-- SIMULATION CONTROL SECTION -->
+    <section id="control-section" class="section control-section">
+        <div class="container">
+            <h2 class="section-title">CONTROL THE VAULT</h2>
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="serverCount">Number of Servers</label>
+                    <input type="number" id="serverCount" value="4" min="1" max="10">
+                </div>
+                <div class="control-group">
+                    <label for="requestCount">Number of Requests</label>
+                    <input type="number" id="requestCount" value="50" min="1" max="500">
+                </div>
+                <div class="control-group">
+                    <label for="algorithm">Algorithm</label>
+                    <select id="algorithm">
+                        <option value="roundRobin">Round Robin</option>
+                        <option value="leastConnections">Least Connections</option>
+                        <option value="dualMode">Dual Comparison Mode</option>
+                    </select>
+                </div>
+                <!-- Advanced Controls -->
+                <div class="control-group">
+                    <label for="simSpeed">Simulation Speed</label>
+                    <select id="simSpeed">
+                        <option value="1000">Slow</option>
+                        <option value="300" selected>Medium</option>
+                        <option value="50">Fast</option>
+                        <option value="step">Step-by-Step</option>
+                    </select>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" id="start-btn" onclick="startSimulation()">START SIMULATION</button>
+                    <button class="btn btn-primary" id="step-btn" style="display:none;" onclick="triggerNextStep()">NEXT STEP</button>
+                </div>
+            </div>
+            
+            <!-- Live Metrics Dashboard -->
+            <div class="metrics-dashboard">
+                <div class="metric-card">
+                    <div class="metric-title">Avg Response Time</div>
+                    <div class="metric-value" id="metric-response">~ 0ms</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Load Balance</div>
+                    <div class="metric-value" id="metric-balance">100%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Overloaded</div>
+                    <div class="metric-value" id="metric-overload">0 / 0</div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- SERVER VISUALIZATION SECTION -->
+    <section class="section server-section">
+        <div class="container">
+            <h2 class="section-title text-center">THE SERVER FARM</h2>
+            
+            <div id="simulation-container">
+                <!-- Main Grid (or Round Robin grid in Dual Mode) -->
+                <div class="grid-wrapper" id="primary-grid-wrapper">
+                    <h3 class="grid-title" id="primary-grid-title" style="display:none;">Round Robin</h3>
+                    <div id="server-grid" class="server-grid">
+                        <!-- Servers injected here -->
+                    </div>
+                </div>
+                
+                <!-- Secondary Grid (for Least Connections in Dual Mode) -->
+                <div class="grid-wrapper" id="secondary-grid-wrapper" style="display:none;">
+                    <h3 class="grid-title">Least Connections</h3>
+                    <div id="server-grid-secondary" class="server-grid">
+                        <!-- Servers injected here -->
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- TRAFFIC VISUALIZATION & COMPARISON SECTION -->
+    <section class="section stats-section">
+        <div class="container">
+            <h2 class="section-title text-center">CASH CASCADES (TRAFFIC)</h2>
+            <div id="charts-wrapper" class="charts-wrapper">
+                <div class="charts-container" id="primary-chart-container">
+                    <h3 id="primary-chart-title">Current Traffic Distribution</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="charts-container" id="secondary-chart-container" style="display:none;">
+                    <h3>Least Connections Traffic</h3>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="trafficChartSecondary"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-container">
+                <h2 class="section-title text-center">ALGORITHM SHOWDOWN</h2>
+                <div class="algo-cards">
+                    <div class="algo-card blue">
+                        <h3>Round Robin</h3>
+                        <p>Distributes requests sequentially to each server. Like dealing cards around a table. Can cause bottlenecks if processing times vary or servers fail.</p>
+                        <div class="pill">Predictable</div>
+                    </div>
+                    <div class="algo-card pink">
+                        <h3>Least Connections</h3>
+                        <p>Sends new requests to the server with the fewest active connections. Highly adaptive in real-world environments when servers experience variable load.</p>
+                        <div class="pill">Adaptive load</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container text-center">
+            <h2 class="footer-title">LOAD BALANCING SIMULATOR</h2>
+            <p>Advanced Interactive Load Balancer Simulator</p>
+        </div>
+    </footer>
+
+    <!-- Particle Container -->
+    <div id="particle-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
